@@ -1,4 +1,4 @@
-# Understanding IP Addresses, DNS, and Domain Names
+# Understanding DNS and Load Balancer
 
 ## 1. What is an IP Address?
 An **IP Address (Internet Protocol Address)** is a unique identifier assigned to each device connected to a network. It helps in identifying and communicating with devices over the internet or a private network.
@@ -265,6 +265,88 @@ By deploying a robust load balancing architecture, businesses can ensure seamles
 
 ---
 
+# Load Balancer Design and Database Sharding
 
+## Load Balancer
+A **Load Balancer** is a system that distributes incoming network traffic across multiple servers to ensure no single server is overwhelmed. The goal is to make sure every request gets a response in the shortest time possible.
 
+### Key Components of Load Balancing:
+1. **IP Address Table** - Keeps track of all available servers.
+2. **Live/Dead Status** - Monitors whether a server is active or down.
+3. **Load Balancing Algorithm** - Determines how requests are distributed.
+
+### Common Load Balancing Algorithms:
+1. **Round Robin**
+   - Requests are distributed sequentially among available servers.
+   - Simple to implement and works well if servers have equal capabilities.
+   - **Limitation**: If some servers are slower, they may become overloaded.
+
+2. **Least Connection First**
+   - Requests are sent to the server with the fewest active connections.
+   - Useful when some requests take longer to process.
+   - **Limitation**: Requires tracking active connections, adding some overhead.
+
+### When to Use Which Algorithm?
+- **Round Robin** is best when all servers have similar capacity.
+- **Least Connection First** is useful when request load varies, ensuring faster servers handle more requests.
+
+---
+
+## Database Sharding
+**Sharding** is a technique for splitting a database into multiple smaller databases (shards) to distribute load and improve scalability.
+
+### How Sharding Works
+- Users are distributed across different database machines.
+- New database machines can be added to handle increasing load.
+- If a machine fails, data must be redistributed among the remaining machines.
+
+### Challenges in Sharding:
+1. **How to Distribute Data?**
+   - A common strategy is **Modulo-Based Sharding**: `userID % n` where `n` is the number of databases.
+   - **Problem**: If `n` changes (e.g., a new database is added), the mapping breaks, causing incorrect data retrieval.
+
+2. **Using Range-Based Sharding**
+   - Example:
+     - DB1 stores users with ID `0-1000`
+     - DB2 stores users with ID `1001+`
+   - **Problem**:
+     - If a user needs to add more data and the assigned database is full, migration is difficult.
+     - Uneven load distribution as some ranges may have more users.
+
+### Solutions and Better Approaches
+1. **Consistent Hashing**
+   - Instead of `userID % n`, use a **hash function** that maps users to database servers dynamically.
+   - When a new database is added, only some data needs to be reallocated instead of all data.
+
+2. **Dynamic Range Partitioning**
+   - Instead of fixed ranges, dynamically adjust ranges based on data load.
+   - Example: If DB1 reaches a threshold, split it into DB1a and DB1b.
+
+---
+
+## Database Replication
+**Replication** is the process of copying data from one database to another for fault tolerance and load balancing.
+
+### Types of Replication:
+1. **Master-Slave Replication**
+   - A **master** database handles all writes.
+   - **Slave** databases replicate the master and handle read requests.
+   - **Use case**: Read-heavy applications.
+
+2. **Master-Master Replication**
+   - Multiple databases handle both read and write operations.
+   - **Use case**: High-availability systems needing fast writes and reads.
+
+### Handling Failures
+- If a master database fails, a slave can be promoted to master.
+- In sharded systems, replication ensures data is not lost when a machine fails.
+
+---
+
+## Conclusion
+- **Load balancing** ensures efficient distribution of requests.
+- **Database sharding** improves scalability but has challenges that can be solved using **consistent hashing**.
+- **Replication** ensures data availability and fault tolerance.
+
+Understanding these concepts helps in designing scalable and resilient systems for handling large-scale applications.
 
